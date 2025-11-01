@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Clock, TrendingUp, Car, AlertCircle, CheckCircle } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 const Dashboard = () => {
   const trafficData = [
@@ -97,22 +98,28 @@ const Dashboard = () => {
               <CardDescription>Vehicle count and average wait time</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ChartContainer
+                config={{
+                  vehicles: {
+                    label: "Vehicles",
+                    color: "hsl(var(--primary))",
+                  },
+                  waitTime: {
+                    label: "Wait Time (s)",
+                    color: "hsl(var(--traffic-yellow))",
+                  },
+                }}
+                className="h-[300px]"
+              >
                 <LineChart data={trafficData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" />
                   <YAxis stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: "hsl(var(--card))", 
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px"
-                    }} 
-                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
                   <Line type="monotone" dataKey="vehicles" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="waitTime" stroke="hsl(var(--traffic-yellow))" strokeWidth={2} dot={false} />
                 </LineChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             </CardContent>
           </Card>
 
@@ -122,22 +129,28 @@ const Dashboard = () => {
               <CardDescription>Vehicles processed per hour</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ChartContainer
+                config={{
+                  traditional: {
+                    label: "Traditional",
+                    color: "hsl(var(--muted))",
+                  },
+                  ai: {
+                    label: "AI System",
+                    color: "hsl(var(--primary))",
+                  },
+                }}
+                className="h-[300px]"
+              >
                 <BarChart data={efficiencyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="intersection" stroke="hsl(var(--muted-foreground))" />
                   <YAxis stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: "hsl(var(--card))", 
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px"
-                    }} 
-                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar dataKey="traditional" fill="hsl(var(--muted))" radius={[8, 8, 0, 0]} />
                   <Bar dataKey="ai" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                 </BarChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             </CardContent>
           </Card>
         </div>
