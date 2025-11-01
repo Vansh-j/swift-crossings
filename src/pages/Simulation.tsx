@@ -6,10 +6,20 @@ import { Ambulance, Clock, Car } from "lucide-react";
 import TrafficIntersection from "@/components/TrafficIntersection";
 import { toast } from "sonner";
 
+interface Vehicle {
+  id: string;
+  from: "north" | "south" | "east" | "west";
+  to: "north" | "south" | "east" | "west";
+  position: number;
+  isAmbulance?: boolean;
+  passed?: boolean;
+}
+
 const Simulation = () => {
   const [aiEnabled, setAiEnabled] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
   const [ambulanceActive, setAmbulanceActive] = useState(false);
+  const [sharedVehicles, setSharedVehicles] = useState<Vehicle[]>([]);
 
   const handleAiToggle = (enabled: boolean) => {
     setAiEnabled(enabled);
@@ -103,17 +113,26 @@ const Simulation = () => {
             <div className="space-y-4">
               <div className="bg-muted/50 rounded-lg p-3 border border-border">
                 <h3 className="font-bold text-lg mb-1">Traditional Control</h3>
-                <p className="text-sm text-muted-foreground">Fixed timing cycles</p>
+                <p className="text-sm text-muted-foreground">60s wait, 15s green</p>
               </div>
-              <TrafficIntersection aiEnabled={false} ambulanceActive={ambulanceActive} />
+              <TrafficIntersection 
+                aiEnabled={false} 
+                ambulanceActive={ambulanceActive} 
+                sharedVehicles={sharedVehicles}
+              />
             </div>
             
             <div className="space-y-4">
               <div className="bg-primary/10 rounded-lg p-3 border border-primary/30">
                 <h3 className="font-bold text-lg mb-1">AI Control</h3>
-                <p className="text-sm text-muted-foreground">Adaptive signal optimization</p>
+                <p className="text-sm text-muted-foreground">Dynamic timing based on traffic</p>
               </div>
-              <TrafficIntersection aiEnabled={true} ambulanceActive={ambulanceActive} />
+              <TrafficIntersection 
+                aiEnabled={true} 
+                ambulanceActive={ambulanceActive} 
+                sharedVehicles={sharedVehicles}
+                onVehiclesChange={setSharedVehicles}
+              />
             </div>
           </div>
         ) : (
@@ -128,7 +147,11 @@ const Simulation = () => {
                   : "Using fixed timing cycles"}
               </p>
             </div>
-            <TrafficIntersection aiEnabled={aiEnabled} ambulanceActive={ambulanceActive} />
+            <TrafficIntersection 
+              aiEnabled={aiEnabled} 
+              ambulanceActive={ambulanceActive}
+              onVehiclesChange={setSharedVehicles}
+            />
           </div>
         )}
 
