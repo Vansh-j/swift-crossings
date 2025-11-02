@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, LayoutDashboard, PlayCircle } from "lucide-react";
+import { Home, LayoutDashboard, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Navigation = () => {
@@ -8,7 +8,7 @@ const Navigation = () => {
   const links = [
     { to: "/", label: "Home", icon: Home },
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/simulation", label: "Simulation", icon: PlayCircle },
+    { to: "/simulation", label: "Camera Streams", icon: Video },
   ];
 
   return (

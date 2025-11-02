@@ -7,6 +7,7 @@ const Simulation = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
 
   useEffect(() => {
     const initCamera = async () => {
@@ -40,6 +41,14 @@ const Simulation = () => {
         stream.getTracks().forEach(track => track.stop());
       }
     };
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString());
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
 
   const cameraFeeds = [
@@ -114,7 +123,7 @@ const Simulation = () => {
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background/80 to-transparent p-4">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <span>Camera ID: CAM-N001</span>
-                          <span>{new Date().toLocaleTimeString()}</span>
+                          <span>{currentTime}</span>
                         </div>
                       </div>
                     </div>
