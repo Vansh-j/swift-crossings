@@ -1,195 +1,192 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Ambulance, Clock, Car } from "lucide-react";
-import TrafficIntersection from "@/components/TrafficIntersection";
+import { useEffect, useRef, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Video, VideoOff, Activity } from "lucide-react";
 import { toast } from "sonner";
 
-interface Vehicle {
-  id: string;
-  from: "north" | "south" | "east" | "west";
-  to: "north" | "south" | "east" | "west";
-  position: number;
-  isAmbulance?: boolean;
-  passed?: boolean;
-}
-
 const Simulation = () => {
-  const [aiEnabled, setAiEnabled] = useState(false);
-  const [compareMode, setCompareMode] = useState(false);
-  const [ambulanceActive, setAmbulanceActive] = useState(false);
-  const [sharedVehicles, setSharedVehicles] = useState<Vehicle[]>([]);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState(false);
 
-  const handleAiToggle = (enabled: boolean) => {
-    setAiEnabled(enabled);
-    toast.success(enabled ? "AI Traffic Control Enabled" : "Traditional Control Enabled", {
-      description: enabled 
-        ? "Signals will now adapt based on traffic density" 
-        : "Using fixed timing cycles"
-    });
-  };
+  useEffect(() => {
+    const initCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { width: 1280, height: 720 } 
+        });
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          setCameraActive(true);
+          toast.success("Camera Connected", {
+            description: "North Road camera stream is live",
+            icon: <Video className="w-4 h-4" />
+          });
+        }
+      } catch (err) {
+        console.error("Camera access error:", err);
+        setCameraError(true);
+        toast.error("Camera Access Denied", {
+          description: "Please allow camera access to view the stream"
+        });
+      }
+    };
 
-  const handleAmbulanceSpawn = () => {
-    setAmbulanceActive(true);
-    toast.warning("Emergency Vehicle Detected!", {
-      description: "Prioritizing ambulance route",
-      icon: <Ambulance className="w-4 h-4 text-ambulance" />
-    });
-    
-    setTimeout(() => {
-      setAmbulanceActive(false);
-      toast.success("Emergency Vehicle Cleared", {
-        description: "Returning to normal traffic flow"
-      });
-    }, 8000);
-  };
+    initCamera();
+
+    return () => {
+      if (videoRef.current?.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  const cameraFeeds = [
+    { id: 1, name: "North Road", active: true },
+    { id: 2, name: "South Road", active: false },
+    { id: 3, name: "East Road", active: false },
+    { id: 4, name: "West Road", active: false },
+  ];
 
   return (
     <div className="min-h-screen pt-16 bg-gradient-to-b from-background to-secondary/20">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 animate-fade-in">
-          <h1 className="text-4xl font-bold mb-2">Traffic Simulation</h1>
-          <p className="text-muted-foreground">Experience AI-powered traffic optimization in real-time</p>
+          <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
+            <Video className="w-10 h-10 text-primary" />
+            Camera Streams
+          </h1>
+          <p className="text-muted-foreground">Real-time monitoring of traffic at all intersection points</p>
         </div>
 
-        {/* Controls */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
-          <Card className="border-border">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                AI Control
-              </CardTitle>
-              <CardDescription>Toggle intelligent signal optimization</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">{aiEnabled ? "Enabled" : "Disabled"}</span>
-                <Switch checked={aiEnabled} onCheckedChange={handleAiToggle} />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Ambulance className="w-4 h-4 text-ambulance" />
-                Emergency Mode
-              </CardTitle>
-              <CardDescription>Spawn ambulance for priority routing</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                onClick={handleAmbulanceSpawn}
-                disabled={ambulanceActive}
-                className="w-full bg-ambulance hover:bg-ambulance/90"
-              >
-                {ambulanceActive ? "Ambulance Active..." : "Spawn Ambulance"}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border">
-            <CardHeader>
-              <CardTitle className="text-lg">Compare Mode</CardTitle>
-              <CardDescription>View AI vs Traditional side-by-side</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                onClick={() => setCompareMode(!compareMode)}
-                variant={compareMode ? "default" : "secondary"}
-                className="w-full"
-              >
-                {compareMode ? "Single View" : "Compare View"}
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Camera Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {cameraFeeds.map((feed, index) => (
+            <Card 
+              key={feed.id} 
+              className="border-border overflow-hidden animate-fade-in bg-card/50 backdrop-blur-sm"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    {feed.active ? (
+                      <>
+                        <div className="relative">
+                          <div className="w-2 h-2 bg-traffic-green rounded-full animate-pulse" />
+                          <div className="absolute inset-0 w-2 h-2 bg-traffic-green rounded-full animate-ping" />
+                        </div>
+                        {feed.name}
+                      </>
+                    ) : (
+                      <>
+                        <VideoOff className="w-4 h-4 text-muted-foreground" />
+                        {feed.name}
+                      </>
+                    )}
+                  </span>
+                  {feed.active && (
+                    <span className="text-xs font-normal text-traffic-green flex items-center gap-1">
+                      <Activity className="w-3 h-3" />
+                      LIVE
+                    </span>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="relative aspect-video bg-secondary/50">
+                  {feed.active && index === 0 ? (
+                    <div className="relative w-full h-full">
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-full object-cover"
+                      />
+                      {cameraActive && (
+                        <div className="absolute top-3 right-3 bg-traffic-green/20 border border-traffic-green/50 rounded-full px-3 py-1 text-xs font-medium text-traffic-green flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-traffic-green rounded-full animate-pulse" />
+                          RECORDING
+                        </div>
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background/80 to-transparent p-4">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Camera ID: CAM-N001</span>
+                          <span>{new Date().toLocaleTimeString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
+                      <VideoOff className="w-16 h-16 mb-4 opacity-50" />
+                      <p className="text-lg font-medium mb-1">Stream Not Available</p>
+                      <p className="text-sm opacity-75">Camera {feed.id} is offline</p>
+                      <div className="mt-4 px-4 py-2 rounded-full bg-secondary/50 border border-border text-xs">
+                        Attempting to reconnect...
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-
-        {/* Simulation Views */}
-        {compareMode ? (
-          <div className="grid lg:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <div className="bg-muted/50 rounded-lg p-3 border border-border">
-                <h3 className="font-bold text-lg mb-1">Traditional Control</h3>
-                <p className="text-sm text-muted-foreground">60s wait, 15s green</p>
-              </div>
-              <TrafficIntersection 
-                aiEnabled={false} 
-                ambulanceActive={ambulanceActive} 
-                sharedVehicles={sharedVehicles}
-              />
-            </div>
-            
-            <div className="space-y-4">
-              <div className="bg-primary/10 rounded-lg p-3 border border-primary/30">
-                <h3 className="font-bold text-lg mb-1">AI Control</h3>
-                <p className="text-sm text-muted-foreground">Dynamic timing based on traffic</p>
-              </div>
-              <TrafficIntersection 
-                aiEnabled={true} 
-                ambulanceActive={ambulanceActive} 
-                sharedVehicles={sharedVehicles}
-                onVehiclesChange={setSharedVehicles}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className={`rounded-lg p-3 border ${aiEnabled ? 'bg-primary/10 border-primary/30' : 'bg-muted/50 border-border'}`}>
-              <h3 className="font-bold text-lg mb-1">
-                {aiEnabled ? "AI Control Active" : "Traditional Control"}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {aiEnabled 
-                  ? "Signals adapting to real-time traffic density" 
-                  : "Using fixed timing cycles"}
-              </p>
-            </div>
-            <TrafficIntersection 
-              aiEnabled={aiEnabled} 
-              ambulanceActive={ambulanceActive}
-              onVehiclesChange={setSharedVehicles}
-            />
-          </div>
-        )}
 
         {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-4 mt-8">
-          <Card className="border-border">
+        <div className="grid md:grid-cols-4 gap-4">
+          <Card className="border-border bg-card/50 backdrop-blur-sm">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <Car className="w-8 h-8 text-primary" />
+                <div className="w-10 h-10 rounded-full bg-traffic-green/20 flex items-center justify-center">
+                  <Video className="w-5 h-5 text-traffic-green" />
+                </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Vehicles Processed</p>
-                  <p className="text-2xl font-bold">{aiEnabled ? "156" : "92"}</p>
+                  <p className="text-sm text-muted-foreground">Active Cameras</p>
+                  <p className="text-2xl font-bold">1/4</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-border">
+          <Card className="border-border bg-card/50 backdrop-blur-sm">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <Clock className="w-8 h-8 text-traffic-yellow" />
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Activity className="w-5 h-5 text-primary" />
+                </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Avg Wait Time</p>
-                  <p className="text-2xl font-bold">{aiEnabled ? "32s" : "58s"}</p>
+                  <p className="text-sm text-muted-foreground">Stream Quality</p>
+                  <p className="text-2xl font-bold">720p</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-border">
+          <Card className="border-border bg-card/50 backdrop-blur-sm">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-traffic-green/20 rounded-full flex items-center justify-center">
-                  <div className="w-4 h-4 bg-traffic-green rounded-full" />
+                <div className="w-10 h-10 rounded-full bg-traffic-yellow/20 flex items-center justify-center">
+                  <VideoOff className="w-5 h-5 text-traffic-yellow" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Efficiency Gain</p>
-                  <p className="text-2xl font-bold text-traffic-green">{aiEnabled ? "+67%" : "0%"}</p>
+                  <p className="text-sm text-muted-foreground">Offline Cameras</p>
+                  <p className="text-2xl font-bold">3</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border bg-card/50 backdrop-blur-sm">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                  <div className="w-2 h-2 bg-accent rounded-full animate-pulse" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">System Status</p>
+                  <p className="text-2xl font-bold text-accent">Active</p>
                 </div>
               </div>
             </CardContent>
