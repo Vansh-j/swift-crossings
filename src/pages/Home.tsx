@@ -33,9 +33,9 @@ const Home = () => {
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
-              <Link to="/simulation">
+              <Link to="/cameras">
                 <Button size="lg" variant="secondary" className="gap-2">
-                  Try Simulation
+                  View Camera Feeds
                 </Button>
               </Link>
             </div>
@@ -86,11 +86,11 @@ const Home = () => {
           <div className="bg-gradient-to-r from-primary/20 to-accent/20 rounded-3xl p-12 text-center border border-primary/20">
             <h2 className="text-4xl font-bold mb-4">Ready to See It in Action?</h2>
             <p className="text-xl text-muted-foreground mb-8">
-              Experience how AI transforms traffic management in real-time
+              Monitor live camera feeds and see AI-powered traffic management in action
             </p>
-            <Link to="/simulation">
+            <Link to="/cameras">
               <Button size="lg" className="gap-2">
-                Launch Simulation
+                View Camera Streams
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>

@@ -8,7 +8,7 @@ const Navigation = () => {
   const links = [
     { to: "/", label: "Home", icon: Home },
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/simulation", label: "Camera Streams", icon: Video },
+    { to: "/cameras", label: "Camera Streams", icon: Video },
   ];
 
   return (
